@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Holographic Surfboard Configurator</title>
+  <meta name="description" content="Design and rotate a fully customizable holographic 3D surfboard, live in your browser." />
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/build/three.module.js",
+        "three/addons/": "./vendor/three/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+
+  <canvas id="scene"></canvas>
+
+  <div id="webgl-fallback" class="webgl-fallback" hidden>
+    <div class="webgl-fallback__card">
+      <h1>WebGL isn't available</h1>
+      <p>This holographic configurator needs WebGL to render the 3D board. Try a recent version of Chrome, Firefox, Safari or Edge, and make sure hardware acceleration is enabled.</p>
+    </div>
+  </div>
+
+  <div id="hint" class="hint" hidden>
+    <span>Drag to rotate &middot; Scroll to zoom</span>
+  </div>
+
+  <header class="topbar">
+    <div class="topbar__brand">
+      <span class="topbar__logo">&#9670;</span>
+      <span class="topbar__title">HOLO&thinsp;/&thinsp;SURF</span>
+    </div>
+    <div id="summary" class="topbar__summary">6'2&Prime; Shortboard &middot; 19.5&Prime; wide &middot; Thruster &middot; Deep Space</div>
+    <button id="panel-toggle" class="topbar__panel-toggle" aria-expanded="false" aria-controls="panel">
+      <span>Customize</span>
+      <svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </header>
+
+  <aside id="panel" class="panel">
+    <div class="panel__scroll">
+
+      <section class="panel__section" data-section="presets">
+        <h2>Presets</h2>
+        <div class="panel__row panel__row--wrap" id="shape-presets"></div>
+        <h3 class="panel__subhead">Colorways</h3>
+        <div class="panel__row panel__row--wrap" id="colorway-presets"></div>
+        <div class="panel__row">
+          <button id="btn-randomize" class="btn btn--ghost">Randomize</button>
+          <button id="btn-reset" class="btn btn--ghost">Reset</button>
+        </div>
+      </section>
+
+      <section class="panel__section" data-section="shape">
+        <h2>Shape</h2>
+        <label class="field">
+          <span class="field__label">Nose shape</span>
+          <select id="nose-shape" class="select">
+            <option value="pointed">Pointed</option>
+            <option value="rounded">Rounded</option>
+            <option value="blunt">Blunt</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label">Tail shape</span>
+          <select id="tail-shape" class="select">
+            <option value="squash">Squash</option>
+            <option value="round">Round</option>
+            <option value="pin">Pin</option>
+            <option value="swallow">Swallow</option>
+            <option value="fish">Fish tail</option>
+          </select>
+        </label>
+        <label class="field">
+          <span class="field__label">Rail profile</span>
+          <div class="toggle" id="rail-profile" data-value="soft">
+            <button type="button" class="toggle__opt is-active" data-value="soft">Soft</button>
+            <button type="button" class="toggle__opt" data-value="hard">Hard</button>
+          </div>
+        </label>
+      </section>
+
+      <section class="panel__section" data-section="dimensions">
+        <h2>Dimensions</h2>
+        <label class="field field--slider">
+          <span class="field__label">Length</span>
+          <input type="range" id="length" min="60" max="120" step="1" value="74" />
+          <output class="field__value" id="length-value">6'2&Prime;</output>
+        </label>
+        <label class="field field--slider">
+          <span class="field__label">Max width</span>
+          <input type="range" id="width" min="16" max="26" step="0.1" value="19.5" />
+          <output class="field__value" id="width-value">19.5&Prime;</output>
+        </label>
+        <label class="field field--slider">
+          <span class="field__label">Nose width</span>
+          <input type="range" id="nose-width" min="6" max="18" step="0.1" value="11.5" />
+          <output class="field__value" id="nose-width-value">11.5&Prime;</output>
+        </label>
+        <label class="field field--slider">
+          <span class="field__label">Tail width</span>
+          <input type="range" id="tail-width" min="6" max="18" step="0.1" value="13.5" />
+          <output class="field__value" id="tail-width-value">13.5&Prime;</output>
+        </label>
+        <label class="field field--slider">
+          <span class="field__label">Thickness</span>
+          <input type="range" id="thickness" min="1.6" max="3.4" step="0.05" value="2.4" />
+          <output class="field__value" id="thickness-value">2.4&Prime;</output>
+        </label>
+        <label class="field field--slider">
+          <span class="field__label">Nose rocker</span>
+          <input type="range" id="nose-rocker" min="0" max="8" step="0.1" value="3.2" />
+          <output class="field__value" id="nose-rocker-value">3.2&Prime;</output>
+        </label>
+        <label class="field field--slider">
+          <span class="field__label">Tail rocker</span>
+          <input type="range" id="tail-rocker" min="0" max="4" step="0.05" value="1.1" />
+          <output class="field__value" id="tail-rocker-value">1.1&Prime;</output>
+        </label>
+      </section>
+
+      <section class="panel__section" data-section="fins">
+        <h2>Fins</h2>
+        <div class="panel__row panel__row--wrap" id="fin-setup"></div>
+      </section>
+
+      <section class="panel__section" data-section="colors">
+        <h2>Colors</h2>
+        <div class="color-grid">
+          <label class="color-field">
+            <span>Deck</span>
+            <input type="color" id="color-deck" value="#7df9ff" />
+          </label>
+          <label class="color-field">
+            <span>Bottom</span>
+            <input type="color" id="color-bottom" value="#ff5ec7" />
+          </label>
+          <label class="color-field">
+            <span>Rail</span>
+            <input type="color" id="color-rail" value="#c9d6ff" />
+          </label>
+          <label class="color-field">
+            <span>Stringer</span>
+            <input type="color" id="color-stringer" value="#ffffff" />
+          </label>
+          <label class="color-field">
+            <span>Pinline</span>
+            <input type="color" id="color-pinline" value="#ff5ec7" />
+          </label>
+          <label class="color-field">
+            <span>Fins</span>
+            <input type="color" id="color-fins" value="#7df9ff" />
+          </label>
+          <label class="color-field">
+            <span>Holo tint</span>
+            <input type="color" id="color-holo" value="#8a5cff" />
+          </label>
+        </div>
+      </section>
+
+    </div>
+  </aside>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>
